@@ -1,10 +1,11 @@
 import dgl
 from torch import nn
+import dgl.function as fn
 
+from learning.message_aggregators.simple_aggregator import SimpleAggregator
 from learning.utils.fc_out_model import FcOutModel
 from learning.message_aggregators import message_aggregators
 from learning.utils.node_type_encoder import NodeTypeEncoder
-import torch as th
 
 
 class MyPassDirection:
@@ -48,7 +49,7 @@ class PassDirection:
 
 class ZeroShotMessagePassingModel(FcOutModel):
     def __init__(self, hidden_dim=None, final_mlp_kwargs=None, output_dim=1, tree_layer_name=None,
-                 tree_layer_kwargs=None, test=False, skip_message_passing=False,
+                 tree_layer_kwargs=None, test=False, skip_message_passing=False, readout_mode=None,
                  device="cpu", label_norm=None, mp_scheme=None):
         super().__init__(output_dim=output_dim, input_dim=hidden_dim, final_out_layer=True, **final_mlp_kwargs)
 
@@ -57,20 +58,28 @@ class ZeroShotMessagePassingModel(FcOutModel):
         self.test = test
         self.skip_message_passing = skip_message_passing
         self.hidden_dim = hidden_dim
-        self.mode = "sink_readout"
+        self.readout_mode = readout_mode
+        self.mp_scheme = mp_scheme
 
-        # Experimentally: Work with graph readout
-        #self.mode = "graph_readout"
+        if self.mp_scheme == "bottom-up":
+            # use different models per edge type
+            self.tree_models = nn.ModuleDict(
+                {"edge": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim, **tree_layer_kwargs),
+                 "has_operator": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim,
+                                                                               **tree_layer_kwargs)})
 
-        # use different models per edge type
-        self.tree_models = nn.ModuleDict(
-            {"edge": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim, **tree_layer_kwargs),
-             "has_operator": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim,
-                                                                           **tree_layer_kwargs)})
+        elif self.mp_scheme == "full":
+            self.tree_models = nn.ModuleDict(
+                {"edge": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim, **tree_layer_kwargs),
+                 "has_operator": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim,
+                                                                               **tree_layer_kwargs),
+                 "is_placed_on": message_aggregators.__dict__[tree_layer_name](hidden_dim=self.hidden_dim,
+                                                                               **tree_layer_kwargs)})
+        elif self.mp_scheme == "simple":
+            self.tree_models = nn.ModuleDict({"edge": SimpleAggregator()})
 
-        if mp_scheme == "full":
-            self.tree_models.update({"is_placed_on": message_aggregators.__dict__[tree_layer_name](
-                hidden_dim=self.hidden_dim, **tree_layer_kwargs)})
+        else:
+            raise RuntimeError(f'{mp_scheme} is not supported')
 
     def encode_node_types(self, g, features):
         """
@@ -95,31 +104,32 @@ class ZeroShotMessagePassingModel(FcOutModel):
         feat_dict = g.features
         graph_data = g.data
 
-        for pd in pass_directions:
-            assert len(pd.etypes) > 0
-            out_dict = self.tree_models[pd.model_name](g, etypes=pd.etypes, in_node_types=pd.in_types,
-                                                       out_node_types=pd.out_types, feat_dict=feat_dict)
-            for out_type, hidden_out in out_dict.items():
-                feat_dict[out_type] = hidden_out
+        # Message passing
+        if self.mp_scheme == "simple":
+            self.tree_models["edge"](g, feat_dict=feat_dict)
 
-        if self.mode == "sink_readout":
-            # Do readout of final node
-            outs = []
+        else:
+            for pd in pass_directions:
+                assert len(pd.etypes) > 0
+                out_dict = self.tree_models[pd.model_name](g, etypes=pd.etypes, in_node_types=pd.in_types,
+                                                           out_node_types=pd.out_types, feat_dict=feat_dict)
+                for out_type, hidden_out in out_dict.items():
+                    feat_dict[out_type] = hidden_out
+
+        # Readout
+        if self.readout_mode == "sink_readout":
+            # Performing a sinkd readout
+            # outs = []
             g.ndata["feat"] = feat_dict
-            graphs = dgl.unbatch(g)
-            for graph_data, graph in zip(graph_data, graphs):
-                out = graph.ndata["feat"][graph_data["top_node"]]
-                out = out[graph_data["top_node_index"]]
-                outs.append(out)
-            outs = th.stack(outs, dim=0)
+            outs = feat_dict['sink']
 
-        elif self.mode == "graph_readout":
-        # perform graph readout by performing sum/min/max/avg operation over all nodes
-            g.ndata['h'] = g.features
+        elif self.readout_mode == "graph_readout":
+            # perform graph readout by performing sum/min/max/avg operation over all nodes
+            g.ndata["feat"] = feat_dict
             outs = self.readout_graph(g)
 
         else:
-            raise NotImplementedError(self.mode + " is not supported")
+            raise NotImplementedError(self.readout_mode + " is not supported")
 
         if not self.test:
             outs = self.fcout(outs)
@@ -129,7 +139,7 @@ class ZeroShotMessagePassingModel(FcOutModel):
     def readout_graph(self, graph):
         readout_result = None
         for ntype in graph.ntypes:
-            tmp = dgl.readout_nodes(graph, feat='h', op="sum", ntype=ntype)
+            tmp = dgl.readout_nodes(graph, feat='feat', op="sum", ntype=ntype)
             if readout_result is None:
                 readout_result = tmp
             else:

@@ -6,7 +6,7 @@ import os
 
 from learning.utils.utils import determine_query_type
 
-plt.style.use('ggplot')
+plt.style.use('seaborn-v0_8')
 QUERY_TYPES = {0: "Linear", 1: "2-Way-Join", 2: "3-Way-Join"}
 
 
@@ -88,11 +88,11 @@ def plot(best_models_path, training_path):
     # Plot dataframes
     fig, axs = plt.subplots(2, 1, figsize=(8, 3), sharex="all")
     combined_preds[["End-To-End-Lat.", "Processing-Lat", "Throughput"]].plot(kind='bar', ax=axs[0], edgecolor="black")
-    combined_preds[["Query Success", "Backpressure"]].plot(kind='bar', ax=axs[1], edgecolor="black", color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3:5])
+    combined_preds[["Query Success", "Backpressure"]].plot(kind='bar', ax=axs[1], edgecolor="black", color=plt.rcParams['axes.prop_cycle'].by_key()['color'][4:6])
 
     # Add hatches
     bars = axs[0].patches
-    patterns = ('///', '..', 'xxx')
+    patterns = ('//', "--", "\\\\")
     hatches = [p for p in patterns for i in range(len(cost_preds_agg))]
     for bar, hatch in zip(bars, hatches):
         bar.set_hatch(hatch)
@@ -114,8 +114,8 @@ def plot(best_models_path, training_path):
     axs[1].set_ylabel("Accuracy\n(%)", rotation=90, fontsize=12, color="black")
     axs[1].set_xlabel("Query Type", fontsize=12, color="black")
 
-    axs[1].legend(ncols=2, loc="lower center")
-    axs[0].legend(ncols=3, loc="lower center")
+    axs[1].legend(ncols=2, loc="lower center", facecolor='white', framealpha=1, frameon=True)
+    axs[0].legend(ncols=3, loc="lower center", facecolor='white', framealpha=1, frameon=True)
 
     plt.savefig('q_error_over_query_type.pdf', bbox_inches='tight')
     fig.tight_layout()

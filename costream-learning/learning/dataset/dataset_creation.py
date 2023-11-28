@@ -283,36 +283,47 @@ def get_data_dict(graph, config):
     by help of previously assigned unique indexes.
     Each node may have 0, 1 or 2 children"""
     data_dict = dict()
-    for node_key, root_data in graph.nodes(data=True):
-        children = []
-        for c in graph.successors(node_key):
-            children.append(c)
-        if len(children) > 2:
-            raise RuntimeError("more than two children for operator " + root_data["id"])
-        for child in children:
-            child_data = graph.nodes.get(child)
 
-            # In the original graph, we have top down, this is why root and child are swapped
-            if root_data["operatorType"] != "host" and child_data["operatorType"] == "host":
-                if config["message_passing_scheme"] == "bottom-up":
-                    add_edge(data_dict, child_data, "has_operator", root_data)
+    if config["message_passing_scheme"] == "simple":
+        for e in graph.edges(data=True):
+            source = graph.nodes.get(e[0])
+            target = graph.nodes.get(e[1])
+            # ignore host-to-host-connections
+            if not (source["operatorType"] == "host" and target["operatorType"] == "host"):
+                add_edge(data_dict, source, "edge", target)
+                add_edge(data_dict, target, "edge", source)
 
-                elif config["message_passing_scheme"] == "full":
-                    add_edge(data_dict, child_data, "has_operator", root_data)
-                    add_edge(data_dict, root_data, "is_placed_on", child_data)
+    else:
+        for node_key, root_data in graph.nodes(data=True):
+            children = []
+            for c in graph.successors(node_key):
+                children.append(c)
+            if len(children) > 2:
+                raise RuntimeError("more than two children for operator " + root_data["id"])
+            for child in children:
+                child_data = graph.nodes.get(child)
+
+                # In the original graph, we have top down, this is why root and child are swapped
+                if root_data["operatorType"] != "host" and child_data["operatorType"] == "host":
+                    if config["message_passing_scheme"] == "bottom-up":
+                        add_edge(data_dict, child_data, "has_operator", root_data)
+
+                    elif config["message_passing_scheme"] == "full":
+                        add_edge(data_dict, child_data, "has_operator", root_data)
+                        add_edge(data_dict, root_data, "is_placed_on", child_data)
+                    else:
+                        raise Exception("MP Scheme "+ wandb.config["message_passing_scheme"] + " not supported")
+
+                elif root_data["operatorType"] != "host" and child_data["operatorType"] != "host":
+                    add_edge(data_dict, root_data, "edge", child_data)
+
+                elif root_data["operatorType"] == "host" and child_data["operatorType"] == "host":
+                    # ignore host-to-host-connections
+                    pass
+
                 else:
-                    raise Exception("MP Scheme "+ wandb.config["message_passing_scheme"] + " not supported")
-
-            elif root_data["operatorType"] != "host" and child_data["operatorType"] != "host":
-                add_edge(data_dict, root_data, "edge", child_data)
-
-            elif root_data["operatorType"] == "host" and child_data["operatorType"] == "host":
-                # ignore host-to-host-connections
-                pass
-
-            else:
-                raise Exception("Edge " + root_data["operatorType"],
-                                child_data["operatorType"] + " not supported in MP scheme")
+                    raise Exception("Edge " + root_data["operatorType"],
+                                    child_data["operatorType"] + " not supported in MP scheme")
 
     # convert to tensors
     for key in data_dict.keys():

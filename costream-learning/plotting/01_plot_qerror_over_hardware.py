@@ -10,7 +10,7 @@ import os
 
 from matplotlib.text import Text
 
-plt.style.use('ggplot')
+plt.style.use('seaborn-v0_8')
 HARDWARE_FEATURES = ["cpu", "ram", "bandwidth", "latency"]
 units = ["%", "MB", "mbit/s", "ms"]
 titles = dict(cpu="CPU (%)", ram="RAM (MB)", bandwidth="Bandwidth (mbit/s)", latency="Latency (ms)")
@@ -100,7 +100,7 @@ def plot(best_models_path, training_path):
         cost_preds_agg = cost_preds.groupby(feat, sort=True)[["End-To-End-Lat.", "Processing-Lat", "Throughput"]].agg("median").dropna()
         combined_preds_agg = combined_preds.groupby(feat, sort=True)[["Query Success", "Backpressure"]].agg("mean").dropna()
         cost_preds_agg.plot(kind='bar', ax=axs[0, i], edgecolor="black", legend=False,  align="edge", width=1)
-        combined_preds_agg.plot(kind='bar', ax=axs[1, i], edgecolor="black", color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3:5], legend=False,  align="edge", width=1)
+        combined_preds_agg.plot(kind='bar', ax=axs[1, i], edgecolor="black", color=plt.rcParams['axes.prop_cycle'].by_key()['color'][4:6], legend=False,  align="edge", width=1)
 
         axs[0, i].tick_params(axis='x', colors='black', rotation=45)
         axs[0, i].tick_params(axis='y', colors='black')
@@ -121,7 +121,7 @@ def plot(best_models_path, training_path):
 
         # Add hatches
         bars = axs[0, i].patches
-        patterns = ('///', '..', 'xxx')
+        patterns = ('//', "--", "\\\\")
         hatches = [p for p in patterns for i in range(len(cost_preds_agg))]
         for bar, hatch in zip(bars, hatches):
             bar.set_hatch(hatch)
@@ -147,11 +147,11 @@ def plot(best_models_path, training_path):
     axs[1, 2].set_zorder(-7)
     axs[1, 3].set_zorder(-8)
 
-    axs[0, 0].legend(handles_1, labels_1, loc='lower center', ncols=3, bbox_to_anchor=(2.5, -0.1))
-    axs[1, 0].legend(handles_0, labels_0, loc='lower center', ncols=3, bbox_to_anchor=(2.6, -0.1))
+    axs[0, 0].legend(handles_1, labels_1, loc='lower center', ncols=3, bbox_to_anchor=(2.5, -0.05), framealpha=1, frameon=True, facecolor='white',)
+    axs[1, 0].legend(handles_0, labels_0, loc='lower center', ncols=3, bbox_to_anchor=(2.6, -0.05), framealpha=1, frameon=True, facecolor='white',)
     plt.savefig('q_error_over_hardware.pdf', bbox_inches='tight')
     plt.show()
-
+    """
     # Also draw motivating example
     fig, axs = plt.subplots(1, 1, figsize=(8, 4))
     cost_preds_agg = cost_preds.groupby("cpu", sort=True)[["End-To-End-Lat.", "Processing-Lat", "Throughput"]].agg("median").dropna()
@@ -183,7 +183,7 @@ def plot(best_models_path, training_path):
 
     plt.savefig('motivating_plot.pdf', bbox_inches='tight')
     plt.show()
-
+    """
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

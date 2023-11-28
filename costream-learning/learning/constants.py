@@ -134,7 +134,8 @@ class FULL_FEATURIZATION:
     # Introduce dummy feature for sink that is always 1, otherwise sinks would have no features
     SINK = ["dummy"]
 
-    ALL = set(DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + HOST_FEATURES + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)
+    ALL = set(
+        DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + HOST_FEATURES + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)
 
 
 class NO_SEL_FEATURIZATION:
@@ -174,4 +175,77 @@ class NO_SEL_FEATURIZATION:
 
     # Introduce dummy feature for sink that is always 1, otherwise sinks would have no features
     SINK = ["dummy"]  #
-    ALL = set(DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + HOST_FEATURES + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)
+    ALL = set(
+        DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + HOST_FEATURES + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)
+
+
+class ONLY_OPERATORS_FEAT:
+    DATA_CHARACTERISTICS = [Feat.TUPLE_W_OUT,
+                            Feat.TUPLE_W_IN]
+
+    WINDOW_CHARACTERISTICS = [Feat.WINDOW_LENGTH,
+                              Feat.SLIDING_LENGTH,
+                              Feat.WINDOW_TYPE,
+                              Feat.WINDOW_POLICY]
+
+    SPOUT_FEATURES = [Feat.NUM_STRING,
+                      Feat.NUM_DOUBLE,
+                      Feat.NUM_INTEGER,
+                      Feat.EVENT_RATE,
+                      Feat.TUPLE_W_OUT]
+
+    FILTER_FEATURES = [Feat.FILTER_FUNCTION,
+                       Feat.FILTER_CLASS] + DATA_CHARACTERISTICS
+
+    WINDOWED_JOIN_FEATURES = [Feat.JOIN_CLASS] + WINDOW_CHARACTERISTICS + DATA_CHARACTERISTICS
+
+    AGGREGATION_FEATURES = [Feat.AGG_FUNCTION,
+                            Feat.AGG_CLASS,
+                            Feat.GROUP_BY_CLASS] + DATA_CHARACTERISTICS
+
+    WINDOWED_AGGREGATION = [Feat.AGG_FUNCTION,
+                            Feat.AGG_CLASS,
+                            Feat.GROUP_BY_CLASS] + WINDOW_CHARACTERISTICS + DATA_CHARACTERISTICS
+
+    # Introduce dummy feature for sink that is always 1, otherwise sinks would have no features
+    SINK = ["dummy"]  #
+    ALL = set(
+        DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)
+
+
+class EMPTY_HOSTS:
+    # Shared characteristics
+    DATA_CHARACTERISTICS = [Feat.TUPLE_W_OUT,
+                            Feat.TUPLE_W_IN]
+
+    WINDOW_CHARACTERISTICS = [Feat.WINDOW_LENGTH,
+                              Feat.SLIDING_LENGTH,
+                              Feat.WINDOW_TYPE,
+                              Feat.WINDOW_POLICY]
+
+    # Node type features
+    HOST_FEATURES = ["dummy"]
+
+    SPOUT_FEATURES = [Feat.NUM_STRING,
+                      Feat.NUM_DOUBLE,
+                      Feat.NUM_INTEGER,
+                      Feat.EVENT_RATE,
+                      Feat.TUPLE_W_OUT]
+
+    FILTER_FEATURES = [Feat.FILTER_FUNCTION,
+                       Feat.FILTER_CLASS] + DATA_CHARACTERISTICS
+
+    WINDOWED_JOIN_FEATURES = [Feat.JOIN_CLASS] + WINDOW_CHARACTERISTICS + DATA_CHARACTERISTICS
+
+    AGGREGATION_FEATURES = [Feat.AGG_FUNCTION,
+                            Feat.AGG_CLASS,
+                            Feat.GROUP_BY_CLASS] + DATA_CHARACTERISTICS
+
+    WINDOWED_AGGREGATION = [Feat.AGG_FUNCTION,
+                            Feat.AGG_CLASS,
+                            Feat.GROUP_BY_CLASS] + WINDOW_CHARACTERISTICS + DATA_CHARACTERISTICS
+
+    # Introduce dummy feature for sink that is always 1, otherwise sinks would have no features
+    SINK = ["dummy"]  #
+    ALL = set(
+        DATA_CHARACTERISTICS + WINDOW_CHARACTERISTICS + HOST_FEATURES + SPOUT_FEATURES + FILTER_FEATURES + WINDOWED_JOIN_FEATURES + AGGREGATION_FEATURES + WINDOWED_AGGREGATION + SINK)

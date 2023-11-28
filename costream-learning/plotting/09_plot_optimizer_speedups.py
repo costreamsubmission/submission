@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from learning.dataset.dataset_creation import extract_labels_from_directory
 
-plt.style.use('ggplot')
+plt.style.use('seaborn-v0_8')
 order = ['Linear', 'Linear\nwith Agg.', '2-Way-Join', '2-Way-J.\nwith Agg.', '3-Way-Join', '3-Way-J.\nwith Agg.']
 
 
@@ -47,7 +47,8 @@ def plot(prediction_results, metric):
     # df["initial_qerror"] = q_error
 
     # Motivating plot
-    fig, ax = plt.subplots(1, 1, figsize=(6, 2))
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(8, 2))
     ax.set_xscale("log")
     ax.set_title("")
     ax.set_xlabel('Processing latency speed-up factor', color='black', rotation=0, size=12)
@@ -77,7 +78,7 @@ def plot(prediction_results, metric):
     fig.suptitle('')
     fig.tight_layout()
     plt.savefig('motivating_plot.pdf', bbox_inches='tight')
-
+    """
     # Compute real Speed-Ups
     df['query_type'] = df['query_type'].str.replace('Linear\nQuery', 'Linear')
     df['query_type'] = df['query_type'].str.replace('Linear\nwith Aggregation', 'Linear\nwith Agg.')
@@ -91,16 +92,16 @@ def plot(prediction_results, metric):
     # Order bars
     real_speed_ups = real_speed_ups.iloc[real_speed_ups.index.map({o: i for i, o in enumerate(order)}).argsort()]
 
-
     cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     # Plot bars
     # fig, ax = plt.subplots(1, 1, figsize=(7, 3))
-    fig, ax = plt.subplots(1, 1, figsize=(6, 2.5))
+    fig, ax = plt.subplots(1, 1, figsize=(8, 2.5))
     real_speed_ups.plot.bar(ax=ax, ecolor='black', capsize=10, edgecolor="black", color=cycle[1])
-    ax.tick_params(axis='x', colors='black', rotation=90, labelsize=15)
+    ax.tick_params(axis='x', colors='black', rotation=0, labelsize=15)
     ax.tick_params(axis='y', colors='black', labelsize=15)
     ax.set_ylabel("Median latency\n speed-up", rotation=90, size=15, color="black")
+    ax.set_ylim(0.1, 45)
     ax.set_xlabel(None)
     fig.tight_layout()
     ax.set_yscale("log")

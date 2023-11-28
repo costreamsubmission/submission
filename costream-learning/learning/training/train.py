@@ -45,7 +45,7 @@ def prepare_model(config, target, feature_statistics, model_dir, model_name, mod
         final_mlp_kwargs.update(width_factor=1.5, n_layers=0, classification_model=True)
 
     if target == "offset":
-        final_mlp_kwargs.update(width_factor=1.5, n_layers=0, classification_model=True)
+        final_mlp_kwargs.update(width_factor=1.5, n_layers=0, classification_model=False)
 
     # parameters for tree-layer MLPs
     tree_layer_kwargs = dict(width_factor=1,
@@ -79,6 +79,7 @@ def prepare_model(config, target, feature_statistics, model_dir, model_name, mod
                           device=device,
                           label_norm=label_norm,
                           mp_scheme=config["message_passing_scheme"],
+                          readout_mode=config["readout_mode"],
                           featurization=featurization)
 
     # Move model to GPU

@@ -94,7 +94,7 @@ def create_retrain_datasets(paths):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--training_data', default=None, required=True)
+    parser.add_argument('--training_data', default=None, required=False)
     parser.add_argument('--retrain_dataset', default=None, required=False)
     parser.add_argument('--mode', choices=["extrapolation", "size", "retrain"], required=True)
     parser.set_defaults(sync=True)
