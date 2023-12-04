@@ -9,8 +9,8 @@ titles={"e2e-latency": "End-To-End-Latency", "proc-latency": "Processing Latency
 def plot():
     species = ("Seen\nqueries", "Unseen\nhardware", "Unseen\nqueries", "Unseen\nbenchmark")
     means = {
-           'COSTREAM': (1.34, 1.93,  1.52,   1.45),
-        'Flat Vector': (9.92, 15.63, 5.52, 104.75),
+           'COSTREAM': (1.37, 1.59,  2.17,   1.41),
+        'Flat Vector': (13.28, 63.79, 444.03, 17.15),
     }
 
     x = np.arange(len(species))  # the label locations
@@ -35,7 +35,7 @@ def plot():
     ax.axvline(0.65, color="black")
     #ax.text(0.35, 21, "Seen Queries", fontsize=10,  verticalalignment='top')
     #ax.text(2.35, 21, "Unseen Queries", fontsize=10,  verticalalignment='top')
-    ax.set_ylim(0, 170)
+    ax.set_ylim(0, 1000)
 
     bars = ax.patches
     patterns = ('//', '\\')
@@ -43,7 +43,7 @@ def plot():
     for bar, hatch in zip(bars, hatches):
         bar.set_hatch(hatch)
 
-    ax.legend(loc='upper center', ncols=2, fontsize=12, bbox_to_anchor=(0.58, 1.00))
+    ax.legend(loc='upper center', ncols=1, fontsize=10, bbox_to_anchor=(0.38, 1.03))
     fig.tight_layout()
     #plt.show()
     plt.savefig("motivating_plot.pdf")

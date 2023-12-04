@@ -38,47 +38,8 @@ def plot(prediction_results, metric):
 
     # removing failing queries,as no speed up is reported here
     df = df[df[metric] != -1]
+    df.to_csv("combined_results.csv")
 
-    # Adding initial Q-Error to data frame
-    # q_error = list()
-    # for (a, b) in zip(list(df["initial_true_value"] / df["initial_est_value"]),
-    #                  list(df["initial_est_value"] / df["initial_true_value"])):
-    #    q_error.append(max(a, b))
-    # df["initial_qerror"] = q_error
-
-    # Motivating plot
-    """
-    fig, ax = plt.subplots(1, 1, figsize=(8, 2))
-    ax.set_xscale("log")
-    ax.set_title("")
-    ax.set_xlabel('Processing latency speed-up factor', color='black', rotation=0, size=12)
-    ax.set_ylabel("")
-    ax.tick_params(axis='x', colors='black', rotation=0)
-    ax.tick_params(axis='y', colors='black')
-
-    ax.axvline(x=1, color='r', linestyle='-', linewidth=1.5)
-    plt.text(x=1, y=2.45, s='equal', ha='center', va='bottom', color='r')
-
-    boxplot_args = dict(column="real_speedup", by='query_type', vert=False, showfliers=True, widths=0.7,
-                        ax=ax, whiskerprops=dict(linestyle='--', linewidth=1.5), patch_artist=True,
-                        boxprops=dict(linestyle='-', linewidth=2),
-                        medianprops=dict(linestyle='-', linewidth=2, color="black"))
-
-    new_df = df[df['query_type'].isin(["Linear\nQuery"])]
-    new_df['query_type'] = df['query_type'].str.replace('Linear\nQuery', 'Linear Query')
-    new_df.boxplot(**boxplot_args, positions=[2])
-
-    new_df = df[df['query_type'].isin(["Linear\nQuery\nwith Aggregation"])]
-    new_df['query_type'] = df['query_type'].str.replace('Linear\nQuery\nwith Aggregation',
-                                                        'Linear query\nwith aggregation')
-    new_df.boxplot(**boxplot_args, positions=[1])
-    ax.set_yticklabels(["Linear query", "Linear query\nwith aggregation"])
-    plt.title("")
-    plt.ylabel("")
-    fig.suptitle('')
-    fig.tight_layout()
-    plt.savefig('motivating_plot.pdf', bbox_inches='tight')
-    """
     # Compute real Speed-Ups
     df['query_type'] = df['query_type'].str.replace('Linear\nQuery', 'Linear')
     df['query_type'] = df['query_type'].str.replace('Linear\nwith Aggregation', 'Linear\nwith Agg.')
@@ -91,7 +52,6 @@ def plot(prediction_results, metric):
 
     # Order bars
     real_speed_ups = real_speed_ups.iloc[real_speed_ups.index.map({o: i for i, o in enumerate(order)}).argsort()]
-
     cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     # Plot bars
@@ -106,11 +66,6 @@ def plot(prediction_results, metric):
     fig.tight_layout()
     ax.set_yscale("log")
 
-    #bars = ax.patches
-    #patterns = ('///')
-    #hatches = [p for p in patterns for i in range(6)]
-    #for bar, hatch in zip(bars, hatches):
-    #    bar.set_hatch(hatch)
     fig.tight_layout()
 
     rects = ax.patches
